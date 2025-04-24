@@ -16,7 +16,7 @@ class OrderTest {
         var order = new Order(
                 "123456",
                 "123456789",
-                Set.of(new Product("123456", 2,  BigDecimal.TEN)),
+                Set.of(new Product("123456", 2, BigDecimal.TEN)),
                 Status.PENDING,
                 Instant.now()
         );
@@ -35,13 +35,14 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         null,
-                        Set.of(new Product("123456", 2,  BigDecimal.TEN)),
+                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
                         Status.PENDING,
                         Instant.now()
                 )
         );
 
-        assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Customer ID cannot be null or empty");
     }
 
@@ -57,7 +58,8 @@ class OrderTest {
                 )
         );
 
-        assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Products cannot be null or empty");
     }
 
@@ -67,13 +69,14 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         "123456789",
-                        Set.of(new Product("123456", 2,  BigDecimal.TEN)),
+                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
                         null,
                         Instant.now()
                 )
         );
 
-        assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Status cannot be null");
     }
 
@@ -83,13 +86,14 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         "123456789",
-                        Set.of(new Product("123456", 2,  BigDecimal.TEN)),
+                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
                         Status.PENDING,
                         null
                 )
         );
 
-        assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Created At cannot be null");
     }
 }

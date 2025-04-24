@@ -13,6 +13,10 @@ public class Product {
         setPrice(price);
     }
 
+    public String getSku() {
+        return sku;
+    }
+
     private void setSku(String sku) {
         if (sku == null || sku.isEmpty())
             throw new IllegalArgumentException("SKU cannot be null or empty");
@@ -20,11 +24,8 @@ public class Product {
         this.sku = sku;
     }
 
-    private void setPrice(BigDecimal price) {
-        if (price == null || price.compareTo(BigDecimal.ZERO) < 0)
-            throw new IllegalArgumentException("Price cannot be null or negative");
-
-        this.price = price;
+    public int getAmount() {
+        return amount;
     }
 
     private void setAmount(int amount) {
@@ -32,5 +33,16 @@ public class Product {
             throw new IllegalArgumentException("Amount must be greater than zero");
 
         this.amount = amount;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    private void setPrice(BigDecimal price) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Price cannot be null or negative");
+
+        this.price = price;
     }
 }
