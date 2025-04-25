@@ -1,5 +1,6 @@
 package com.fiap.order.core.entity;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
@@ -92,5 +93,11 @@ public class Order {
             throw new IllegalArgumentException("Created At cannot be null");
 
         this.createdAt = createdAt;
+    }
+
+    public BigDecimal getTotalValue() {
+        return products.stream()
+                .map(Product::getTotalValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

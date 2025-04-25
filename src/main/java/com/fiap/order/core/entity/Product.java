@@ -1,6 +1,7 @@
 package com.fiap.order.core.entity;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class Product {
     private String sku;
@@ -46,7 +47,20 @@ public class Product {
         this.value = value;
     }
 
-    public  BigDecimal getTotalValue() {
+    public BigDecimal getTotalValue() {
         return value.multiply(BigDecimal.valueOf(amount));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(sku);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Product product))
+            return false;
+
+        return this == o || sku.equals(product.sku);
     }
 }

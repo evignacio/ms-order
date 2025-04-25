@@ -96,4 +96,20 @@ class OrderTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Created At cannot be null");
     }
+
+    @Test
+    void shouldReturnTotalValue() {
+        var product1 = new Product("123456", 2, BigDecimal.TEN);
+        var product2 = new Product("123457", 2, BigDecimal.ONE);
+
+        var order = new Order(
+                "123456",
+                "123456789",
+                Set.of(product1, product2),
+                Status.PENDING,
+                Instant.now()
+        );
+
+        assertThat(order.getTotalValue()).isEqualTo(BigDecimal.valueOf(22));
+    }
 }
