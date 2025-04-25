@@ -15,7 +15,7 @@ class ProductTest {
 
         assertThat(product.getSku()).isEqualTo("123456");
         assertThat(product.getAmount()).isEqualTo(2);
-        assertThat(product.getPrice()).isEqualTo(BigDecimal.TEN);
+        assertThat(product.getValue()).isEqualTo(BigDecimal.TEN);
     }
 
     @Test
@@ -48,6 +48,13 @@ class ProductTest {
 
         assertThat(exception)
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Price cannot be null or negative");
+                .hasMessage("Value cannot be null or negative");
+    }
+
+    @Test
+    void shouldReturnTotalValue() {
+        var product = new Product("123456", 2, BigDecimal.TEN);
+
+        assertThat(product.getTotalValue()).isEqualTo(BigDecimal.valueOf(20));
     }
 }

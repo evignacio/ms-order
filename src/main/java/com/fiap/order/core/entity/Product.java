@@ -5,12 +5,12 @@ import java.math.BigDecimal;
 public class Product {
     private String sku;
     private int amount;
-    private BigDecimal price;
+    private BigDecimal value;
 
-    public Product(String sku, int amount, BigDecimal price) {
+    public Product(String sku, int amount, BigDecimal value) {
         setSku(sku);
         setAmount(amount);
-        setPrice(price);
+        setValue(value);
     }
 
     public String getSku() {
@@ -35,14 +35,18 @@ public class Product {
         this.amount = amount;
     }
 
-    public BigDecimal getPrice() {
-        return price;
+    public BigDecimal getValue() {
+        return value;
     }
 
-    private void setPrice(BigDecimal price) {
-        if (price == null || price.compareTo(BigDecimal.ZERO) < 0)
-            throw new IllegalArgumentException("Price cannot be null or negative");
+    private void setValue(BigDecimal value) {
+        if (value == null || value.compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("Value cannot be null or negative");
 
-        this.price = price;
+        this.value = value;
+    }
+
+    public  BigDecimal getTotalValue() {
+        return value.multiply(BigDecimal.valueOf(amount));
     }
 }
