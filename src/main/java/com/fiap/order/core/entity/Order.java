@@ -2,6 +2,7 @@ package com.fiap.order.core.entity;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,11 +21,11 @@ public class Order {
         setCreatedAt(createdAt);
     }
 
-    public Order(String customerId, Set<Product> products, Status status) {
+    public Order(String customerId, Set<Product> products) {
         this.id = UUID.randomUUID().toString();
         setCustomerId(customerId);
         setProducts(products);
-        setStatus(status);
+        this.status = Status.PENDING;
         this.createdAt = Instant.now();
     }
 
@@ -53,24 +54,26 @@ public class Order {
     public Set<Product> getProducts() {
         return products;
     }
-    public void addProduct(Product product) {
-        if (product == null)
-            throw new IllegalArgumentException("Product cannot be null");
-
-        this.products.add(product);
-    }
-    public void removeProduct(Product product) {
-        if (product == null)
-            throw new IllegalArgumentException("Product cannot be null");
-
-        this.products.remove(product);
-    }
 
     private void setProducts(Set<Product> products) {
         if (products == null || products.isEmpty())
             throw new IllegalArgumentException("Products cannot be null or empty");
 
         this.products = products;
+    }
+
+    public void addProduct(Product product) {
+        if (product == null)
+            throw new IllegalArgumentException("Product cannot be null");
+
+        this.products.add(product);
+    }
+
+    public void removeProduct(Product product) {
+        if (product == null)
+            throw new IllegalArgumentException("Product cannot be null");
+
+        this.products.remove(product);
     }
 
     public Status getStatus() {
@@ -99,5 +102,40 @@ public class Order {
         return products.stream()
                 .map(Product::getTotalValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public void defineNoStock() {
+        setStatus(Status.CLOSED_NO_STOCK);
+    }
+
+    public void definePaymentNotApproved() {
+        setStatus(Status.CLOSED_PAYMENT_NOT_APPROVED);
+    }
+
+    public boolean isPending() {
+        return status.equals(Status.PENDING);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Order order)) return false;
+        return Objects.equals(id, order.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id='" + id + '\'' +
+                ", customerId='" + customerId + '\'' +
+                ", products=" + products +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                '}';
     }
 }

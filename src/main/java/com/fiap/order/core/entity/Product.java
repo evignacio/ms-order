@@ -63,4 +63,13 @@ public class Product {
 
         return this == o || sku.equals(product.sku);
     }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "sku='" + sku + '\'' +
+                ", amount=" + amount +
+                ", value=" + value +
+                '}';
+    }
 }
