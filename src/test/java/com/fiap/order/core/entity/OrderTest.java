@@ -1,5 +1,7 @@
 package com.fiap.order.core.entity;
 
+import com.fiap.order.core.entity.valueobject.Address;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -11,20 +13,29 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 class OrderTest {
 
+    private Address address;
+
+    @BeforeEach
+    void setUp() {
+        address = Address.AddressBuilder.builder()
+                .build("Rua 1", "123", "SP", "Brazil", "01234567");
+    }
+
     @Test
     void shouldCreateOrder() {
         var order = new Order(
                 "123456",
                 "123456789",
-                Set.of(new Product("123456", 2, BigDecimal.TEN)),
+                Set.of(new OrderItem("123456", 2, BigDecimal.TEN)),
+                address,
                 Status.PENDING,
                 Instant.now()
         );
 
         assertThat(order.getId()).isEqualTo("123456");
         assertThat(order.getCustomerId()).isEqualTo("123456789");
-        assertThat(order.getProducts()).isNotNull();
-        assertThat(order.getProducts().size()).isEqualTo(1);
+        assertThat(order.getOrderItems()).isNotNull();
+        assertThat(order.getOrderItems().size()).isEqualTo(1);
         assertThat(order.getStatus()).isEqualTo(Status.PENDING);
         assertThat(order.getCreatedAt()).isNotNull();
     }
@@ -35,7 +46,8 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         null,
-                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
+                        Set.of(new OrderItem("123456", 2, BigDecimal.TEN)),
+                        address,
                         Status.PENDING,
                         Instant.now()
                 )
@@ -53,6 +65,7 @@ class OrderTest {
                         "123456",
                         "123456789",
                         null,
+                        address,
                         Status.PENDING,
                         Instant.now()
                 )
@@ -69,7 +82,8 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         "123456789",
-                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
+                        Set.of(new OrderItem("123456", 2, BigDecimal.TEN)),
+                        address,
                         null,
                         Instant.now()
                 )
@@ -86,7 +100,8 @@ class OrderTest {
                 () -> new Order(
                         "123456",
                         "123456789",
-                        Set.of(new Product("123456", 2, BigDecimal.TEN)),
+                        Set.of(new OrderItem("123456", 2, BigDecimal.TEN)),
+                        address,
                         Status.PENDING,
                         null
                 )
@@ -99,17 +114,73 @@ class OrderTest {
 
     @Test
     void shouldReturnTotalValue() {
-        var product1 = new Product("123456", 2, BigDecimal.TEN);
-        var product2 = new Product("123457", 2, BigDecimal.ONE);
+        var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+        var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
 
         var order = new Order(
                 "123456",
                 "123456789",
                 Set.of(product1, product2),
+                address,
                 Status.PENDING,
                 Instant.now()
         );
 
         assertThat(order.getTotalValue()).isEqualTo(BigDecimal.valueOf(22));
+    }
+
+    @Test
+    void shouldReturnStatusClosedNoStock() {
+        var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+        var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
+
+        var order = new Order(
+                "123456",
+                "123456789",
+                Set.of(product1, product2),
+                address,
+                Status.PENDING,
+                Instant.now()
+        );
+
+        order.defineNoStock();
+
+        assertThat(order.getStatus()).isEqualTo(Status.CLOSED_NO_STOCK);
+    }
+
+    @Test
+    void shouldReturnStatusClosedPaymentNotApproved() {
+        var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+        var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
+
+        var order = new Order(
+                "123456",
+                "123456789",
+                Set.of(product1, product2),
+                address,
+                Status.PENDING,
+                Instant.now()
+        );
+
+        order.definePaymentNotApproved();
+
+        assertThat(order.getStatus()).isEqualTo(Status.CLOSED_PAYMENT_NOT_APPROVED);
+    }
+
+    @Test
+    void shouldReturnPaymentAvailable() {
+        var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+        var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
+
+        var order = new Order(
+                "123456",
+                "123456789",
+                Set.of(product1, product2),
+                address,
+                Status.PENDING,
+                Instant.now()
+        );
+
+        assertThat(order.isPaymentAvailable()).isTrue();
     }
 }

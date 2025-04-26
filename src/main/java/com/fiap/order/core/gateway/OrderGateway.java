@@ -2,12 +2,15 @@ package com.fiap.order.core.gateway;
 
 import com.fiap.order.core.entity.Order;
 
+import java.util.Optional;
+import java.util.Set;
+
 public interface OrderGateway {
-    void save(Order order);
+    Order save(Order order);
 
-    void find(String orderId);
+    Optional<Order> find(String orderId);
 
-    void findAll();
+    Set<Order> findAll();
 
     void delete(String orderId);
 }

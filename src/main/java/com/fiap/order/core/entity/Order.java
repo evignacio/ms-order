@@ -1,5 +1,7 @@
 package com.fiap.order.core.entity;
 
+import com.fiap.order.core.entity.valueobject.Address;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
@@ -9,22 +11,25 @@ import java.util.UUID;
 public class Order {
     private String id;
     private String customerId;
-    private Set<Product> products;
+    private Set<OrderItem> orderItems;
+    private Address address;
     private Status status;
     private Instant createdAt;
 
-    public Order(String id, String customerId, Set<Product> products, Status status, Instant createdAt) {
+    public Order(String id, String customerId, Set<OrderItem> orderItems, Address address, Status status, Instant createdAt) {
         setId(id);
         setCustomerId(customerId);
-        setProducts(products);
+        setOrderItems(orderItems);
+        setAddress(address);
         setStatus(status);
         setCreatedAt(createdAt);
     }
 
-    public Order(String customerId, Set<Product> products) {
+    public Order(String customerId, Set<OrderItem> orderItems, Address address) {
         this.id = UUID.randomUUID().toString();
         setCustomerId(customerId);
-        setProducts(products);
+        setOrderItems(orderItems);
+        setAddress(address);
         this.status = Status.PENDING;
         this.createdAt = Instant.now();
     }
@@ -51,29 +56,40 @@ public class Order {
         this.customerId = customerId;
     }
 
-    public Set<Product> getProducts() {
-        return products;
+    public Set<OrderItem> getOrderItems() {
+        return orderItems;
     }
 
-    private void setProducts(Set<Product> products) {
-        if (products == null || products.isEmpty())
+    private void setOrderItems(Set<OrderItem> orderItems) {
+        if (orderItems == null || orderItems.isEmpty())
             throw new IllegalArgumentException("Products cannot be null or empty");
 
-        this.products = products;
+        this.orderItems = orderItems;
     }
 
-    public void addProduct(Product product) {
-        if (product == null)
-            throw new IllegalArgumentException("Product cannot be null");
+    public void addOrderItem(OrderItem orderItem) {
+        if (orderItem == null)
+            throw new IllegalArgumentException("OrderItemDTO cannot be null");
 
-        this.products.add(product);
+        this.orderItems.add(orderItem);
     }
 
-    public void removeProduct(Product product) {
-        if (product == null)
-            throw new IllegalArgumentException("Product cannot be null");
+    public void removeOrderItem(OrderItem orderItem) {
+        if (orderItem == null)
+            throw new IllegalArgumentException("OrderItemDTO cannot be null");
 
-        this.products.remove(product);
+        this.orderItems.remove(orderItem);
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    private void setAddress(Address address) {
+        if (address == null)
+            throw new IllegalArgumentException("Address cannot be null");
+
+        this.address = address;
     }
 
     public Status getStatus() {
@@ -99,8 +115,8 @@ public class Order {
     }
 
     public BigDecimal getTotalValue() {
-        return products.stream()
-                .map(Product::getTotalValue)
+        return orderItems.stream()
+                .map(OrderItem::getTotalValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -112,8 +128,9 @@ public class Order {
         setStatus(Status.CLOSED_PAYMENT_NOT_APPROVED);
     }
 
-    public boolean isPending() {
-        return status.equals(Status.PENDING);
+    public boolean isPaymentAvailable() {
+        return status.equals(Status.PENDING) || status.equals(Status.CLOSED_PAYMENT_NOT_APPROVED);
+        //O Status CLOSED_PAYMENT_NOT_APPROVED é o status que indica que o pagamento não foi aprovado, mas ainda pode ter outras tentativas de pagamento.
     }
 
     @Override
@@ -133,7 +150,7 @@ public class Order {
         return "Order{" +
                 "id='" + id + '\'' +
                 ", customerId='" + customerId + '\'' +
-                ", products=" + products +
+                ", orderItems=" + orderItems +
                 ", status=" + status +
                 ", createdAt=" + createdAt +
                 '}';

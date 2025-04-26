@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
-class ProductTest {
+class OrderItemDTOTest {
 
     @Test
     void shouldCreateProduct() {
-        var product = new Product("123456", 2, BigDecimal.TEN);
+        var product = new OrderItem("123456", 2, BigDecimal.TEN);
 
         assertThat(product.getSku()).isEqualTo("123456");
         assertThat(product.getAmount()).isEqualTo(2);
@@ -21,7 +21,7 @@ class ProductTest {
     @Test
     void shouldReturnSkuNull() {
         var exception = catchThrowable(
-                () -> new Product(null, 2, BigDecimal.TEN)
+                () -> new OrderItem(null, 2, BigDecimal.TEN)
         );
 
         assertThat(exception)
@@ -32,7 +32,7 @@ class ProductTest {
     @Test
     void shouldReturnInvalidAmount() {
         var exception = catchThrowable(
-                () -> new Product("123456", 0, BigDecimal.TEN)
+                () -> new OrderItem("123456", 0, BigDecimal.TEN)
         );
 
         assertThat(exception)
@@ -43,7 +43,7 @@ class ProductTest {
     @Test
     void shoudlReturnInvalidPrice() {
         var exception = catchThrowable(
-                () -> new Product("123456", 2, null)
+                () -> new OrderItem("123456", 2, null)
         );
 
         assertThat(exception)
@@ -53,7 +53,7 @@ class ProductTest {
 
     @Test
     void shouldReturnTotalValue() {
-        var product = new Product("123456", 2, BigDecimal.TEN);
+        var product = new OrderItem("123456", 2, BigDecimal.TEN);
 
         assertThat(product.getTotalValue()).isEqualTo(BigDecimal.valueOf(20));
     }

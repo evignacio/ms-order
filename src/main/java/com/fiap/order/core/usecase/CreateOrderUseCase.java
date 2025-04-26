@@ -1,16 +1,17 @@
 package com.fiap.order.core.usecase;
 
 import com.fiap.order.core.dto.CreateOrderDTO;
-import com.fiap.order.core.entity.CreditCard;
+import com.fiap.order.core.dto.CreditCardDTO;
+import com.fiap.order.core.dto.OrderItemDTO;
 import com.fiap.order.core.entity.Order;
-import com.fiap.order.core.entity.Product;
+import com.fiap.order.core.entity.OrderItem;
 import com.fiap.order.core.exception.PaymentNotApprovedException;
 import com.fiap.order.core.exception.StockNotAvailableException;
 import com.fiap.order.core.gateway.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
+import java.util.HashSet;
 
 @Slf4j
 @Service
@@ -34,40 +35,34 @@ public class CreateOrderUseCase {
         this.stockGateway = stockGateway;
     }
 
-    public void execute(CreateOrderDTO input) {
-        log.info("Creating order for customer {}", input.customerId());
+    public Order execute(CreateOrderDTO input) {
+        var customer = input.customer();
+        log.info("Creating order for customer {}", customer.costumerId());
 
-        if (!customerGateway.exists(input.customerId()))
-            throw new IllegalArgumentException("Customer not found customerId:" + input.customerId());
+        var address = customerGateway.findAddress(customer.costumerId(), customer.addressId())
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find the customer address provided, customerId: %s, addressId: %s", customer.costumerId(), customer.addressId())));
 
-        var products = input.products()
-                .stream()
-                .map(p -> new Product(p.sku(), p.amount(), p.value()))
-                .collect(Collectors.toSet());
+        var orderItems = new HashSet<OrderItem>();
+        for (OrderItemDTO item : input.orderItems()) {
+            var product = productGateway.find(item.sku())
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found, sku:" + item.sku()));
 
-        var order = new Order(input.customerId(), products);
-
-        products.forEach(p -> {
-            if (!productGateway.exists(p.getSku()))
-                throw new IllegalArgumentException("Product not found sku:" + p.getSku());
-        });
-
-        reserveStock(order);
-        if (order.isPending()) {
-            var creditCard = new CreditCard(
-                    input.creditCard().number(),
-                    input.creditCard().name(),
-                    input.creditCard().expirationDate(),
-                    input.creditCard().cvv()
-            );
-            registerPaymentRequest(creditCard, order);
+            var orderItem = new OrderItem(item.sku(), item.amount(), product.value());
+            orderItems.add(orderItem);
         }
+        var order = new Order(customer.costumerId(), orderItems, address);
+        reserveStock(order);
+
+        if (order.isPaymentAvailable())
+            registerPaymentRequest(input.creditCard(), order);
+
         orderGateway.save(order);
         log.info("Order {} created", order.getId());
+        return order;
     }
 
     private void reserveStock(Order order) {
-        order.getProducts().forEach(p -> {
+        order.getOrderItems().forEach(p -> {
             try {
                 log.info("Reserving stock for product {}, amount {}", p.getSku(), p.getAmount());
                 stockGateway.reserve(p.getSku(), p.getAmount());
@@ -78,13 +73,13 @@ public class CreateOrderUseCase {
         });
     }
 
-    private void registerPaymentRequest(CreditCard creditCard, Order order) {
+    private void registerPaymentRequest(CreditCardDTO creditCard, Order order) {
         try {
             log.info("Requesting payment for the order {}", order.getId());
             paymentGateway.registerPaymentRequest(creditCard, order);
         } catch (PaymentNotApprovedException exception) {
             log.error("Payment failed for order {}", order.getId(), exception);
-            order.getProducts().forEach(p -> stockGateway.release(p.getSku(), p.getAmount()));
+            order.getOrderItems().forEach(p -> stockGateway.release(p.getSku(), p.getAmount()));
             order.definePaymentNotApproved();
         }
     }
