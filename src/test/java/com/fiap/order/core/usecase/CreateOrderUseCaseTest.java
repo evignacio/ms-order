@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -105,10 +106,15 @@ class CreateOrderUseCaseTest {
 
     @Test
     void shouldCreateOrderWithStatusClosedNoStock() {
+        var items = new LinkedHashSet<OrderItemDTO>();
         var item = new OrderItemDTO("sku", 2);
+        var item2 = new OrderItemDTO("sku2", 2);
+        items.add(item);
+        items.add(item2);
+
         var creditCard = new CreditCardDTO("token", "902");
         var customer = new CustomerDTO("costumerId", "addressId");
-        var input = new CreateOrderDTO(customer, Set.of(item), creditCard);
+        var input = new CreateOrderDTO(customer, items, creditCard);
 
         var address = Address.AddressBuilder.builder()
                 .name("Name")
@@ -116,11 +122,13 @@ class CreateOrderUseCaseTest {
                 .build("Rua 1", "Sao Paulo", "Sao Paulo", "Brazil", "01234567");
 
         var product = new ProductDTO("sku", BigDecimal.TEN);
+        var product2 = new ProductDTO("sku2", BigDecimal.ONE);
 
         var order = new Order(
                 "123456",
                 "costumerId",
-                Set.of(new OrderItem("sku", 2, BigDecimal.TEN)),
+                Set.of(new OrderItem("sku", 2, BigDecimal.TEN),
+                        new OrderItem("sku2", 1, BigDecimal.ONE)),
                 address,
                 Status.PENDING,
                 Instant.now()
@@ -132,23 +140,25 @@ class CreateOrderUseCaseTest {
         when(productGateway.find(item.sku()))
                 .thenReturn(Optional.of(product));
 
-        doThrow(new StockNotAvailableException("No stock for product")).when(stockGateway).reserve("sku", 2);
+        when(productGateway.find(item2.sku()))
+                .thenReturn(Optional.of(product2));
+
+        doNothing().when(stockGateway).reserve("sku", 2);
+        doThrow(new StockNotAvailableException("No stock for product")).when(stockGateway).reserve("sku2", 2);
 
         when(orderGateway.save(any(Order.class))).thenReturn(order);
 
         var result = createOrderUseCase.execute(input);
 
         verify(paymentGateway, times(0)).registerPaymentRequest(any(CreditCardDTO.class), any(Order.class));
-        verify(stockGateway, times(1)).reserve("sku", 2);
+        verify(stockGateway, times(2)).reserve(anyString(), anyInt());
+        verify(stockGateway, times(1)).release("sku", 2);
         verify(orderGateway, times(1)).save(any(Order.class));
 
         assertThat(result.getId()).isNotNull();
         assertThat(result.getCustomerId()).isEqualTo("costumerId");
         assertThat(result.getOrderItems()).isNotNull();
-        assertThat(result.getOrderItems()).hasSize(1);
-        assertThat(result.getOrderItems().iterator().next().getSku()).isEqualTo("sku");
-        assertThat(result.getOrderItems().iterator().next().getAmount()).isEqualTo(2);
-        assertThat(result.getOrderItems().iterator().next().getValue()).isEqualTo(BigDecimal.TEN);
+        assertThat(result.getOrderItems()).hasSize(2);
         assertThat(result.getStatus()).isEqualTo(Status.CLOSED_NO_STOCK);
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getAddress()).isNotNull();
@@ -217,6 +227,4 @@ class CreateOrderUseCaseTest {
         assertThat(result.getAddress().getCountry()).isEqualTo("Brazil");
         assertThat(result.getAddress().getZipCode()).isEqualTo("01234567");
     }
-
-
 }

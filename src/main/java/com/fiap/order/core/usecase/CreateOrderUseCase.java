@@ -11,7 +11,7 @@ import com.fiap.order.core.gateway.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 
 @Slf4j
 @Service
@@ -42,7 +42,7 @@ public class CreateOrderUseCase {
         var address = customerGateway.findAddress(customer.costumerId(), customer.addressId())
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find the customer address provided, customerId: %s, addressId: %s", customer.costumerId(), customer.addressId())));
 
-        var orderItems = new HashSet<OrderItem>();
+        var orderItems = new LinkedHashSet<OrderItem>();
         for (OrderItemDTO item : input.orderItems()) {
             var product = productGateway.find(item.sku())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found, sku:" + item.sku()));
@@ -62,12 +62,15 @@ public class CreateOrderUseCase {
     }
 
     private void reserveStock(Order order) {
-        order.getOrderItems().forEach(p -> {
+        var itemsReserved = new LinkedHashSet<OrderItem>();
+        order.getOrderItems().forEach(item -> {
             try {
-                log.info("Reserving stock for product {}, amount {}", p.getSku(), p.getAmount());
-                stockGateway.reserve(p.getSku(), p.getAmount());
+                log.info("Reserving stock for product {}, amount {}", item.getSku(), item.getAmount());
+                stockGateway.reserve(item.getSku(), item.getAmount());
+                itemsReserved.add(item);
             } catch (StockNotAvailableException exception) {
-                log.error("Stock not available for product {}, amount {}", p.getSku(), p.getAmount(), exception);
+                log.error("Stock not available for product {}, amount {}", item.getSku(), item.getAmount(), exception);
+                itemsReserved.forEach(i -> stockGateway.release(i.getSku(), i.getAmount()));
                 order.defineNoStock();
             }
         });
