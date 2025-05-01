@@ -3,6 +3,8 @@ package com.fiap.order.core.entity;
 import com.fiap.order.core.entity.valueobject.Address;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -73,7 +75,7 @@ class OrderTest {
 
         assertThat(exception)
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Products cannot be null or empty");
+                .hasMessage("OrderItems cannot be null or empty");
     }
 
     @Test
@@ -130,7 +132,7 @@ class OrderTest {
     }
 
     @Test
-    void shouldReturnStatusClosedNoStock() {
+    void shouldReturnStatusNoStock() {
         var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
         var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
 
@@ -145,11 +147,11 @@ class OrderTest {
 
         order.defineNoStock();
 
-        assertThat(order.getStatus()).isEqualTo(Status.CLOSED_NO_STOCK);
+        assertThat(order.getStatus()).isEqualTo(Status.NO_STOCK);
     }
 
     @Test
-    void shouldReturnStatusClosedPaymentNotApproved() {
+    void shouldReturnStatusPaymentNotApproved() {
         var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
         var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
 
@@ -164,11 +166,12 @@ class OrderTest {
 
         order.definePaymentNotApproved();
 
-        assertThat(order.getStatus()).isEqualTo(Status.CLOSED_PAYMENT_NOT_APPROVED);
+        assertThat(order.getStatus()).isEqualTo(Status.PAYMENT_NOT_APPROVED);
     }
 
-    @Test
-    void shouldReturnPaymentAvailable() {
+    @ParameterizedTest
+    @ValueSource(strings = {"AWAITING_PAYMENT", "PAYMENT_NOT_APPROVED"})
+    void shouldReturnPaymentAvailable(String status) {
         var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
         var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
 
@@ -177,10 +180,28 @@ class OrderTest {
                 "123456789",
                 Set.of(product1, product2),
                 address,
-                Status.PENDING,
+                Status.valueOf(status),
                 Instant.now()
         );
 
         assertThat(order.isPaymentAvailable()).isTrue();
+    }
+
+    @ValueSource(strings = {"CANCELED", "COMPLETED"})
+    @ParameterizedTest
+    void shouldReturnClosed(String status) {
+            var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+            var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
+
+            var order = new Order(
+                    "123456",
+                    "123456789",
+                    Set.of(product1, product2),
+                    address,
+                    Status.valueOf(status),
+                    Instant.now()
+            );
+
+            assertThat(order.isClosed()).isTrue();
     }
 }

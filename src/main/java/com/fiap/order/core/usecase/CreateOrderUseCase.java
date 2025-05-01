@@ -1,17 +1,11 @@
 package com.fiap.order.core.usecase;
 
 import com.fiap.order.core.dto.CreateOrderDTO;
-import com.fiap.order.core.dto.CreditCardDTO;
-import com.fiap.order.core.dto.OrderItemDTO;
 import com.fiap.order.core.entity.Order;
-import com.fiap.order.core.entity.OrderItem;
-import com.fiap.order.core.exception.PaymentNotApprovedException;
-import com.fiap.order.core.exception.StockNotAvailableException;
+import com.fiap.order.core.factory.OrderFactory;
 import com.fiap.order.core.gateway.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.LinkedHashSet;
 
 @Slf4j
 @Service
@@ -19,20 +13,20 @@ public class CreateOrderUseCase {
 
     private final OrderGateway orderGateway;
     private final CustomerGateway customerGateway;
-    private final ProductGateway productGateway;
-    private final PaymentGateway paymentGateway;
-    private final StockGateway stockGateway;
+    private final CreateItemsOrderUseCase createItemsOrderUseCase;
+    private final ReserveStockUseCase reserveStockUseCase;
+    private final RegisterPaymentRequestUseCase registerPaymentRequestUseCase;
 
     public CreateOrderUseCase(OrderGateway orderGateway,
                               CustomerGateway customerGateway,
-                              ProductGateway productGateway,
-                              PaymentGateway paymentGateway,
-                              StockGateway stockGateway) {
+                              CreateItemsOrderUseCase createItemsOrderUseCase,
+                              ReserveStockUseCase reserveStockUseCase,
+                              RegisterPaymentRequestUseCase registerPaymentRequestUseCase) {
         this.orderGateway = orderGateway;
         this.customerGateway = customerGateway;
-        this.productGateway = productGateway;
-        this.paymentGateway = paymentGateway;
-        this.stockGateway = stockGateway;
+        this.createItemsOrderUseCase = createItemsOrderUseCase;
+        this.reserveStockUseCase = reserveStockUseCase;
+        this.registerPaymentRequestUseCase = registerPaymentRequestUseCase;
     }
 
     public Order execute(CreateOrderDTO input) {
@@ -42,48 +36,15 @@ public class CreateOrderUseCase {
         var address = customerGateway.findAddress(customer.costumerId(), customer.addressId())
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find the customer address provided, customerId: %s, addressId: %s", customer.costumerId(), customer.addressId())));
 
-        var orderItems = new LinkedHashSet<OrderItem>();
-        for (OrderItemDTO item : input.orderItems()) {
-            var product = productGateway.find(item.sku())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found, sku:" + item.sku()));
-
-            var orderItem = new OrderItem(item.sku(), item.amount(), product.value());
-            orderItems.add(orderItem);
-        }
-        var order = new Order(customer.costumerId(), orderItems, address);
-        reserveStock(order);
+        var orderItems = createItemsOrderUseCase.execute(input.orderItems());
+        var order = OrderFactory.build(customer.costumerId(), orderItems, address);
+        reserveStockUseCase.execute(order);
 
         if (order.isPaymentAvailable())
-            registerPaymentRequest(input.creditCard(), order);
+            registerPaymentRequestUseCase.execute(input.creditCard(), order);
 
         orderGateway.save(order);
         log.info("Order {} created", order.getId());
         return order;
-    }
-
-    private void reserveStock(Order order) {
-        var itemsReserved = new LinkedHashSet<OrderItem>();
-        order.getOrderItems().forEach(item -> {
-            try {
-                log.info("Reserving stock for product {}, amount {}", item.getSku(), item.getAmount());
-                stockGateway.reserve(item.getSku(), item.getAmount());
-                itemsReserved.add(item);
-            } catch (StockNotAvailableException exception) {
-                log.error("Stock not available for product {}, amount {}", item.getSku(), item.getAmount(), exception);
-                itemsReserved.forEach(i -> stockGateway.release(i.getSku(), i.getAmount()));
-                order.defineNoStock();
-            }
-        });
-    }
-
-    private void registerPaymentRequest(CreditCardDTO creditCard, Order order) {
-        try {
-            log.info("Requesting payment for the order {}", order.getId());
-            paymentGateway.registerPaymentRequest(creditCard, order);
-        } catch (PaymentNotApprovedException exception) {
-            log.error("Payment failed for order {}", order.getId(), exception);
-            order.getOrderItems().forEach(p -> stockGateway.release(p.getSku(), p.getAmount()));
-            order.definePaymentNotApproved();
-        }
     }
 }

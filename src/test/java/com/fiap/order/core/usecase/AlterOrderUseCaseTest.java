@@ -7,9 +7,11 @@ import com.fiap.order.core.entity.Status;
 import com.fiap.order.core.entity.valueobject.Address;
 import com.fiap.order.core.factory.OrderFactory;
 import com.fiap.order.core.gateway.*;
-import org.junit.jupiter.api.BeforeAll;
+import org.apache.kafka.common.protocol.types.Field;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -17,16 +19,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CreateOrderUseCaseTest {
+class AlterOrderUseCaseTest {
 
     @Mock
     private OrderGateway orderGateway;
@@ -44,15 +48,13 @@ class CreateOrderUseCaseTest {
     private RegisterPaymentRequestUseCase registerPaymentRequestUseCase;
 
     @InjectMocks
-    private CreateOrderUseCase createOrderUseCase;
-
+    private AlterOrderUseCase alterOrderUseCase;
 
     @Test
-    void shouldCreateOrderWithPayment() {
+    void shouldAlterOrderWithPayment() {
         try (MockedStatic<OrderFactory> mockedStatic = mockStatic(OrderFactory.class)) {
             var creditCard = new CreditCardDTO("token", "902");
-            var customer = new CustomerDTO("costumerId", "addressId");
-            var input = new CreateOrderDTO(customer, Set.of(new OrderItemDTO("sku", 2)), creditCard);
+            var input = new AlterOrderDTO("orderId", "addressId", Set.of(new OrderItemDTO("sku", 2)), creditCard);
 
             var address = Address.AddressBuilder.builder()
                     .name("Name")
@@ -70,7 +72,8 @@ class CreateOrderUseCaseTest {
                     Instant.now()
             );
 
-            when(customerGateway.findAddress(customer.costumerId(), customer.addressId())).thenReturn(Optional.of(address));
+            when(orderGateway.find(input.orderId())).thenReturn(Optional.of(order));
+            when(customerGateway.findAddress(anyString(), anyString())).thenReturn(Optional.of(address));
             when(createItemsOrderUseCase.execute(input.orderItems())).thenReturn(Set.of(itemOrder));
 
             mockedStatic.when(() -> OrderFactory.build(anyString(), any(Set.class), any(Address.class)))
@@ -81,7 +84,7 @@ class CreateOrderUseCaseTest {
 
             when(orderGateway.save(any(Order.class))).thenReturn(order);
 
-            var result = createOrderUseCase.execute(input);
+            var result = alterOrderUseCase.execute(input);
 
             verify(registerPaymentRequestUseCase, times(1)).execute(any(CreditCardDTO.class), any(Order.class));
             verify(reserveStockUseCase, times(1)).execute(any(Order.class));
@@ -107,17 +110,10 @@ class CreateOrderUseCaseTest {
     }
 
     @Test
-    void shouldCreateOrderWithOutPayment() {
+    void shouldAlterOrderWithOutPayment() {
         try (MockedStatic<OrderFactory> mockedStatic = mockStatic(OrderFactory.class)) {
-            var items = new LinkedHashSet<OrderItemDTO>();
-            var item = new OrderItemDTO("sku", 2);
-            var item2 = new OrderItemDTO("sku2", 2);
-            items.add(item);
-            items.add(item2);
-
             var creditCard = new CreditCardDTO("token", "902");
-            var customer = new CustomerDTO("costumerId", "addressId");
-            var input = new CreateOrderDTO(customer, items, creditCard);
+            var input = new AlterOrderDTO("orderId", "addressId", Set.of(new OrderItemDTO("sku", 2)), creditCard);
 
             var address = Address.AddressBuilder.builder()
                     .name("Name")
@@ -136,7 +132,8 @@ class CreateOrderUseCaseTest {
                     Instant.now()
             );
 
-            when(customerGateway.findAddress(customer.costumerId(), customer.addressId())).thenReturn(Optional.of(address));
+            when(orderGateway.find(input.orderId())).thenReturn(Optional.of(order));
+            when(customerGateway.findAddress(anyString(), anyString())).thenReturn(Optional.of(address));
             when(createItemsOrderUseCase.execute(input.orderItems())).thenReturn(itemOrders);
 
             mockedStatic.when(() -> OrderFactory.build(anyString(), any(Set.class), any(Address.class)))
@@ -146,7 +143,7 @@ class CreateOrderUseCaseTest {
 
             when(orderGateway.save(any(Order.class))).thenReturn(order);
 
-            var result = createOrderUseCase.execute(input);
+            var result = alterOrderUseCase.execute(input);
 
             verify(registerPaymentRequestUseCase, times(0)).execute(any(CreditCardDTO.class), any(Order.class));
             verify(reserveStockUseCase, times(1)).execute(any(Order.class));
@@ -166,5 +163,48 @@ class CreateOrderUseCaseTest {
             assertThat(result.getAddress().getCountry()).isEqualTo("Brazil");
             assertThat(result.getAddress().getZipCode()).isEqualTo("01234567");
         }
+    }
+
+    @Test
+    void shouldReturnOrderNotFound() {
+        var creditCard = new CreditCardDTO("token", "902");
+        var input = new AlterOrderDTO("orderId", "addressId", Set.of(new OrderItemDTO("sku", 2)), creditCard);
+
+        when(orderGateway.find(input.orderId())).thenReturn(Optional.empty());
+        var exception = catchThrowable(() -> alterOrderUseCase.execute(input));
+
+        assertThat(exception)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Order not found, id:orderId");
+    }
+    @ValueSource(strings = {"CANCELED", "COMPLETED"})
+    @ParameterizedTest
+    void shouldReturnStatusNotAllowOrderChanges(String status) {
+        var creditCard = new CreditCardDTO("token", "902");
+        var input = new AlterOrderDTO("orderId", "addressId", Set.of(new OrderItemDTO("sku", 2)), creditCard);
+
+        var address = Address.AddressBuilder.builder()
+                .name("Name")
+                .number("123")
+                .build("Rua 1", "Sao Paulo", "Sao Paulo", "Brazil", "01234567");
+
+        var itemOrders = Set.of(new OrderItem("sku", 2, BigDecimal.TEN),
+                new OrderItem("sku2", 1, BigDecimal.ONE));
+
+        var order = new Order(
+                "123456",
+                "costumerId",
+                itemOrders,
+                address,
+                Status.valueOf(status),
+                Instant.now()
+        );
+
+        when(orderGateway.find(input.orderId())).thenReturn(Optional.of(order));
+
+        var exception =  catchThrowable(() -> alterOrderUseCase.execute(input));
+        assertThat(exception)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Order status does not allow changes");
     }
 }

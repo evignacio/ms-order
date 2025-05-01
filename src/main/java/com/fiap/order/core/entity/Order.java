@@ -62,21 +62,21 @@ public class Order {
 
     private void setOrderItems(Set<OrderItem> orderItems) {
         if (orderItems == null || orderItems.isEmpty())
-            throw new IllegalArgumentException("Products cannot be null or empty");
+            throw new IllegalArgumentException("OrderItems cannot be null or empty");
 
         this.orderItems = orderItems;
     }
 
     public void addOrderItem(OrderItem orderItem) {
         if (orderItem == null)
-            throw new IllegalArgumentException("OrderItemDTO cannot be null");
+            throw new IllegalArgumentException("OrderItem cannot be null");
 
         this.orderItems.add(orderItem);
     }
 
     public void removeOrderItem(OrderItem orderItem) {
         if (orderItem == null)
-            throw new IllegalArgumentException("OrderItemDTO cannot be null");
+            throw new IllegalArgumentException("OrderItem cannot be null");
 
         this.orderItems.remove(orderItem);
     }
@@ -121,16 +121,31 @@ public class Order {
     }
 
     public void defineNoStock() {
-        setStatus(Status.CLOSED_NO_STOCK);
+        setStatus(Status.NO_STOCK);
     }
 
     public void definePaymentNotApproved() {
-        setStatus(Status.CLOSED_PAYMENT_NOT_APPROVED);
+        setStatus(Status.PAYMENT_NOT_APPROVED);
+    }
+
+    public void defineAwaitingPayment() {
+        setStatus(Status.AWAITING_PAYMENT);
+    }
+
+    public void defineCompleted() {
+        setStatus(Status.COMPLETED);
     }
 
     public boolean isPaymentAvailable() {
-        return status.equals(Status.PENDING) || status.equals(Status.CLOSED_PAYMENT_NOT_APPROVED);
-        //O Status CLOSED_PAYMENT_NOT_APPROVED é o status que indica que o pagamento não foi aprovado, mas ainda pode ter outras tentativas de pagamento.
+        return Set.of(Status.AWAITING_PAYMENT, Status.PAYMENT_NOT_APPROVED)
+                .stream()
+                .anyMatch(s -> s.equals(status));
+    }
+
+    public boolean isClosed() {
+        return Set.of(Status.CANCELED, Status.COMPLETED)
+                .stream()
+                .anyMatch(s -> s.equals(status));
     }
 
     @Override
