@@ -1,8 +1,6 @@
 package com.fiap.order.infrastructure.repository.model;
 
-import com.fiap.order.core.entity.OrderItem;
 import com.fiap.order.core.entity.Status;
-import com.fiap.order.core.entity.valueobject.Address;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -19,7 +17,7 @@ public class OrderModel {
     private String id;
     private String customerId;
     private Set<OrderItemModel> orderItems;
-    private Address address;
+    private AddressModel address;
     private Status status;
     private Instant createdAt;
 }

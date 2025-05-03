@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: order
+  data:
+    mongodb:
+      initialization-mode: always
+      uri: mongodb://localhost:27017/order 
