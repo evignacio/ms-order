@@ -20,6 +20,7 @@ public class CreateItemsOrderUseCase {
     }
 
     public Set<OrderItem> execute(Set<OrderItemDTO> input) {
+        log.info("Creating order items");
         var orderItems = new LinkedHashSet<OrderItem>();
         for (OrderItemDTO item : input) {
             var product = productGateway.find(item.sku())

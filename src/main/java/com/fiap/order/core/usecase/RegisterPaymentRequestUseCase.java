@@ -21,6 +21,7 @@ public class RegisterPaymentRequestUseCase {
     }
 
     public void execute(CreditCardDTO creditCard, Order order) {
+        log.info("Registering payment request for order {}", order.getId());
         if (!order.isPaymentAvailable())
             throw new IllegalStateException("Payment not available for order " + order.getId());
 

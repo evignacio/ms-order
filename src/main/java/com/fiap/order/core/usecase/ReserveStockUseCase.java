@@ -19,6 +19,7 @@ public class ReserveStockUseCase {
     }
 
     public void execute(Order order) {
+        log.info("Reserving stock for order {}", order.getId());
         var itemsReserved = new LinkedHashSet<OrderItem>();
         order.getOrderItems().forEach(item -> {
             try {

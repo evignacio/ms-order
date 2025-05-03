@@ -7,7 +7,6 @@ import com.fiap.order.core.entity.Status;
 import com.fiap.order.core.entity.valueobject.Address;
 import com.fiap.order.core.factory.OrderFactory;
 import com.fiap.order.core.gateway.*;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
