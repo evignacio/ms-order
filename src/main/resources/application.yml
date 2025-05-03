@@ -4,4 +4,10 @@ spring:
   data:
     mongodb:
       initialization-mode: always
-      uri: mongodb://localhost:27017/order 
+      uri: mongodb://localhost:27017/order
+
+rest-client:
+  product:
+    url: http://localhost:8081/api/v1/product
+  customer:
+    url: http://localhost:8082/customer

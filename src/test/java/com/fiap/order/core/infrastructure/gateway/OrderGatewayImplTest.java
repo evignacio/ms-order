@@ -1,11 +1,10 @@
-package com.fiap.order.core.infrastructure;
+package com.fiap.order.core.infrastructure.gateway;
 
 import com.fiap.order.core.entity.Order;
 import com.fiap.order.core.entity.OrderItem;
 import com.fiap.order.core.entity.Status;
 import com.fiap.order.core.entity.valueobject.Address;
 import com.fiap.order.infrastructure.gateway.OrderGatewayImpl;
-import com.fiap.order.infrastructure.mapper.OrderMapper;
 import com.fiap.order.infrastructure.repository.OrderRepository;
 import com.fiap.order.infrastructure.repository.model.AddressModel;
 import com.fiap.order.infrastructure.repository.model.OrderItemModel;
