@@ -37,7 +37,7 @@ public class ProductGatewayImpl implements ProductGateway {
                 log.warn(PRODUCT_NOT_FOUND_MESSAGE, sku);
                 return Optional.empty();
             }
-            log.error("Error fetching product with SKU {}: {}", sku, exception.getMessage());
+            log.error("Error fetching product with SKU {}", sku, exception);
             throw exception;
         }
     }

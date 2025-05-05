@@ -1,7 +1,6 @@
-package com.fiap.order.core.infrastructure.gateway;
+package com.fiap.order.infrastructure.gateway;
 
 import com.fiap.order.core.dto.ProductDTO;
-import com.fiap.order.infrastructure.gateway.ProductGatewayImpl;
 import com.fiap.order.infrastructure.integration.rest.ProductRestClient;
 import com.fiap.order.infrastructure.integration.rest.to.ProductResponse;
 import feign.FeignException;

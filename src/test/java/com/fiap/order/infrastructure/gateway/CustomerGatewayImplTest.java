@@ -4,6 +4,7 @@ import com.fiap.order.core.entity.valueobject.Address;
 import com.fiap.order.infrastructure.integration.rest.CustomerRestClient;
 import com.fiap.order.infrastructure.integration.rest.to.AddressTO;
 import com.fiap.order.infrastructure.integration.rest.to.CustomerResponse;
+import feign.FeignException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -78,6 +79,17 @@ class CustomerGatewayImplTest {
         Optional<Address> result = customerGateway.findAddress(customerId, "456");
 
         assertTrue(result.isEmpty());
+        verify(customerRestClient, times(1)).find(customerId);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFeignExceptionOccurs() {
+        String customerId = "123";
+        FeignException feignException = mock(FeignException.class);
+        when(feignException.status()).thenReturn(500);
+        when(customerRestClient.find(customerId)).thenThrow(feignException);
+
+        assertThrows(FeignException.class, () -> customerGateway.findAddress(customerId, "456"));
         verify(customerRestClient, times(1)).find(customerId);
     }
 }
