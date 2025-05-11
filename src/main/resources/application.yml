@@ -11,3 +11,9 @@ rest-client:
     url: http://localhost:8081/api/v1/product
   customer:
     url: http://localhost:8082/customer
+
+kafka:
+  topic:
+    order-receiver:
+      name: orderReceiver
+      partition: 0
