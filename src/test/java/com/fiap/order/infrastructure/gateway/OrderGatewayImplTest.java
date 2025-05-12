@@ -44,7 +44,7 @@ class OrderGatewayImplTest {
 
         var order = new Order(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder),
                 address,
                 Status.AWAITING_PAYMENT,
@@ -69,7 +69,7 @@ class OrderGatewayImplTest {
 
         var orderModel = new OrderModel(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(ItemOrderModel),
                 addressModel,
                 Status.AWAITING_PAYMENT,
@@ -95,7 +95,7 @@ class OrderGatewayImplTest {
 
         var order = new Order(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder),
                 address,
                 Status.AWAITING_PAYMENT,
@@ -120,7 +120,7 @@ class OrderGatewayImplTest {
 
         var orderModel = new OrderModel(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(ItemOrderModel),
                 addressModel,
                 Status.AWAITING_PAYMENT,
@@ -159,7 +159,7 @@ class OrderGatewayImplTest {
 
         var order = new Order(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder),
                 address,
                 Status.AWAITING_PAYMENT,
@@ -184,7 +184,7 @@ class OrderGatewayImplTest {
 
         var orderModel = new OrderModel(
                 "123456",
-                "costumerId",
+                "customerId",
                 Set.of(ItemOrderModel),
                 addressModel,
                 Status.AWAITING_PAYMENT,

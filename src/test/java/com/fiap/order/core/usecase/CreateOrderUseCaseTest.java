@@ -50,7 +50,7 @@ class CreateOrderUseCaseTest {
     void shouldCreateOrderWithPayment() {
         try (MockedStatic<OrderFactory> mockedStatic = mockStatic(OrderFactory.class)) {
             var creditCard = new CreditCardDTO("token", "902");
-            var customer = new CustomerDTO("costumerId", "addressId");
+            var customer = new CustomerDTO("customerId", "addressId");
             var input = new CreateOrderDTO(customer, Set.of(new OrderItemDTO("sku", 2)), creditCard);
 
             var address = Address.AddressBuilder.builder()
@@ -62,14 +62,14 @@ class CreateOrderUseCaseTest {
 
             var order = new Order(
                     "123456",
-                    "costumerId",
+                    "customerId",
                     Set.of(itemOrder),
                     address,
                     Status.AWAITING_PAYMENT,
                     Instant.now()
             );
 
-            when(customerGateway.findAddress(customer.costumerId(), customer.addressId())).thenReturn(Optional.of(address));
+            when(customerGateway.findAddress(customer.customerId(), customer.addressId())).thenReturn(Optional.of(address));
             when(createItemsOrderUseCase.execute(input.orderItems())).thenReturn(Set.of(itemOrder));
 
             mockedStatic.when(() -> OrderFactory.build(anyString(), any(Set.class), any(Address.class)))
@@ -87,7 +87,7 @@ class CreateOrderUseCaseTest {
             verify(orderGateway, times(1)).save(any(Order.class));
 
             assertThat(result.getId()).isNotNull();
-            assertThat(result.getCustomerId()).isEqualTo("costumerId");
+            assertThat(result.getCustomerId()).isEqualTo("customerId");
             assertThat(result.getOrderItems()).isNotNull();
             assertThat(result.getOrderItems()).hasSize(1);
             assertThat(result.getOrderItems().iterator().next().getSku()).isEqualTo("sku");
@@ -115,7 +115,7 @@ class CreateOrderUseCaseTest {
             items.add(item2);
 
             var creditCard = new CreditCardDTO("token", "902");
-            var customer = new CustomerDTO("costumerId", "addressId");
+            var customer = new CustomerDTO("customerId", "addressId");
             var input = new CreateOrderDTO(customer, items, creditCard);
 
             var address = Address.AddressBuilder.builder()
@@ -128,14 +128,14 @@ class CreateOrderUseCaseTest {
 
             var order = new Order(
                     "123456",
-                    "costumerId",
+                    "customerId",
                     itemOrders,
                     address,
                     Status.NO_STOCK,
                     Instant.now()
             );
 
-            when(customerGateway.findAddress(customer.costumerId(), customer.addressId())).thenReturn(Optional.of(address));
+            when(customerGateway.findAddress(customer.customerId(), customer.addressId())).thenReturn(Optional.of(address));
             when(createItemsOrderUseCase.execute(input.orderItems())).thenReturn(itemOrders);
 
             mockedStatic.when(() -> OrderFactory.build(anyString(), any(Set.class), any(Address.class)))
@@ -152,7 +152,7 @@ class CreateOrderUseCaseTest {
             verify(orderGateway, times(1)).save(any(Order.class));
 
             assertThat(result.getId()).isNotNull();
-            assertThat(result.getCustomerId()).isEqualTo("costumerId");
+            assertThat(result.getCustomerId()).isEqualTo("customerId");
             assertThat(result.getOrderItems()).isNotNull();
             assertThat(result.getOrderItems()).hasSize(2);
             assertThat(result.getStatus()).isEqualTo(Status.NO_STOCK);

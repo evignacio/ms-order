@@ -65,7 +65,7 @@ class AlterOrderUseCaseTest {
 
             var order = new Order(
                     "123456",
-                    "costumerId",
+                    "customerId",
                     Set.of(itemOrder),
                     address,
                     Status.AWAITING_PAYMENT,
@@ -91,7 +91,7 @@ class AlterOrderUseCaseTest {
             verify(orderGateway, times(1)).save(any(Order.class));
 
             assertThat(result.getId()).isNotNull();
-            assertThat(result.getCustomerId()).isEqualTo("costumerId");
+            assertThat(result.getCustomerId()).isEqualTo("customerId");
             assertThat(result.getOrderItems()).isNotNull();
             assertThat(result.getOrderItems()).hasSize(1);
             assertThat(result.getOrderItems().iterator().next().getSku()).isEqualTo("sku");
@@ -125,7 +125,7 @@ class AlterOrderUseCaseTest {
 
             var order = new Order(
                     "123456",
-                    "costumerId",
+                    "customerId",
                     itemOrders,
                     address,
                     Status.NO_STOCK,
@@ -150,7 +150,7 @@ class AlterOrderUseCaseTest {
             verify(orderGateway, times(1)).save(any(Order.class));
 
             assertThat(result.getId()).isNotNull();
-            assertThat(result.getCustomerId()).isEqualTo("costumerId");
+            assertThat(result.getCustomerId()).isEqualTo("customerId");
             assertThat(result.getOrderItems()).isNotNull();
             assertThat(result.getOrderItems()).hasSize(2);
             assertThat(result.getStatus()).isEqualTo(Status.NO_STOCK);
@@ -193,7 +193,7 @@ class AlterOrderUseCaseTest {
 
         var order = new Order(
                 "123456",
-                "costumerId",
+                "customerId",
                 itemOrders,
                 address,
                 Status.valueOf(status),

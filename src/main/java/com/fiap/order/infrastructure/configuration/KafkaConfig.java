@@ -1,9 +1,8 @@
 package com.fiap.order.infrastructure.configuration;
 
-import com.fiap.order.core.entity.Order;
+import com.fiap.order.core.dto.CreateOrderDTO;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +12,6 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,9 +23,9 @@ public class KafkaConfig {
     private String orderReceiverTopic;
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, Order>>
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, CreateOrderDTO>>
     kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Order> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, CreateOrderDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
         factory.getContainerProperties().setPollTimeout(3000);
@@ -35,7 +33,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Order> consumerFactory() {
+    public ConsumerFactory<String, CreateOrderDTO> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(consumerConfigs());
     }
 
@@ -45,8 +43,8 @@ public class KafkaConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        props.put(JsonDeserializer.KEY_DEFAULT_TYPE,  String.class);
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE,  Order.class);
+        props.put(JsonDeserializer.KEY_DEFAULT_TYPE, String.class);
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CreateOrderDTO.class);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         return props;
     }

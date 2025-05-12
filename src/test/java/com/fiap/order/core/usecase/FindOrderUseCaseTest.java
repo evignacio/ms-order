@@ -39,7 +39,7 @@ class FindOrderUseCaseTest {
 
         var order = new Order(
                 "orderId",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder),
                 address,
                 Status.AWAITING_PAYMENT,

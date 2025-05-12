@@ -31,13 +31,13 @@ public class CreateOrderUseCase {
 
     public Order execute(CreateOrderDTO input) {
         var customer = input.customer();
-        log.info("Creating order for customer {}", customer.costumerId());
+        log.info("Creating order for customer {}", customer.customerId());
 
-        var address = customerGateway.findAddress(customer.costumerId(), customer.addressId())
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find the customer address provided, customerId: %s, addressId: %s", customer.costumerId(), customer.addressId())));
+        var address = customerGateway.findAddress(customer.customerId(), customer.addressId())
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Unable to find the customer address provided, customerId: %s, addressId: %s", customer.customerId(), customer.addressId())));
 
         var orderItems = createItemsOrderUseCase.execute(input.orderItems());
-        var order = OrderFactory.build(customer.costumerId(), orderItems, address);
+        var order = OrderFactory.build(customer.customerId(), orderItems, address);
         reserveStockUseCase.execute(order);
 
         if (order.isPaymentAvailable())

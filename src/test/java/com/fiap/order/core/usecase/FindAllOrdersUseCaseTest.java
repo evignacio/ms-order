@@ -39,7 +39,7 @@ class FindAllOrdersUseCaseTest {
 
         var order1 = new Order(
                 "orderId",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder1),
                 address,
                 Status.AWAITING_PAYMENT,
@@ -48,7 +48,7 @@ class FindAllOrdersUseCaseTest {
 
         var order2 = new Order(
                 "orderId2",
-                "costumerId",
+                "customerId",
                 Set.of(itemOrder2),
                 address,
                 Status.AWAITING_PAYMENT,
