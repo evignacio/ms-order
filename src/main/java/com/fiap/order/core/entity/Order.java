@@ -132,6 +132,10 @@ public class Order {
         setStatus(Status.AWAITING_PAYMENT);
     }
 
+    public void defineProcessingPayment() {
+        setStatus(Status.PROCESSING_PAYMENT);
+    }
+
     public void defineCompleted() {
         setStatus(Status.COMPLETED);
     }

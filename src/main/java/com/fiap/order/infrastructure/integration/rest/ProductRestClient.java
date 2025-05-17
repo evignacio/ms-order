@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "product", url = "${rest-client..product.url}")
+@FeignClient(name = "productRestClient", url = "${rest-client.product.url}")
 public interface ProductRestClient {
 
     @GetMapping("{sku}")

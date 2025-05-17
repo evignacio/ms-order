@@ -169,6 +169,25 @@ class OrderTest {
         assertThat(order.getStatus()).isEqualTo(Status.PAYMENT_NOT_APPROVED);
     }
 
+    @Test
+    void shouldReturnStatusCompleted() {
+        var product1 = new OrderItem("123456", 2, BigDecimal.TEN);
+        var product2 = new OrderItem("123457", 2, BigDecimal.ONE);
+
+        var order = new Order(
+                "123456",
+                "123456789",
+                Set.of(product1, product2),
+                address,
+                Status.PENDING,
+                Instant.now()
+        );
+
+        order.defineCompleted();
+
+        assertThat(order.getStatus()).isEqualTo(Status.COMPLETED);
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"AWAITING_PAYMENT", "PAYMENT_NOT_APPROVED"})
     void shouldReturnPaymentAvailable(String status) {

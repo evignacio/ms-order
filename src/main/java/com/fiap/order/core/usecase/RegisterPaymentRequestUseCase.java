@@ -4,7 +4,6 @@ import com.fiap.order.core.dto.CreditCardDTO;
 import com.fiap.order.core.entity.Order;
 import com.fiap.order.core.exception.PaymentNotApprovedException;
 import com.fiap.order.core.gateway.PaymentGateway;
-import com.fiap.order.core.gateway.StockGateway;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +12,12 @@ import org.springframework.stereotype.Service;
 public class RegisterPaymentRequestUseCase {
 
     private final PaymentGateway paymentGateway;
-    private final StockGateway stockGateway;
+    private final ReleaseStockUseCase releaseStockUseCase;
 
-    public RegisterPaymentRequestUseCase(PaymentGateway paymentGateway, StockGateway stockGateway) {
+    public RegisterPaymentRequestUseCase(PaymentGateway paymentGateway,
+                                         ReleaseStockUseCase releaseStockUseCase) {
         this.paymentGateway = paymentGateway;
-        this.stockGateway = stockGateway;
+        this.releaseStockUseCase = releaseStockUseCase;
     }
 
     public void execute(CreditCardDTO creditCard, Order order) {
@@ -28,10 +28,10 @@ public class RegisterPaymentRequestUseCase {
         try {
             log.info("Requesting payment for the order {}", order.getId());
             paymentGateway.registerPaymentRequest(creditCard, order);
-            order.defineCompleted();
+            order.defineProcessingPayment();
         } catch (PaymentNotApprovedException exception) {
             log.error("Payment failed for order {}", order.getId(), exception);
-            order.getOrderItems().forEach(p -> stockGateway.release(p.getSku(), p.getAmount()));
+            order.getOrderItems().forEach(p -> releaseStockUseCase.execute(order));
             order.definePaymentNotApproved();
         }
     }

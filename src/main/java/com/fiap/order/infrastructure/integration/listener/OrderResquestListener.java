@@ -1,4 +1,4 @@
-package com.fiap.order.infrastructure.listener;
+package com.fiap.order.infrastructure.integration.listener;
 
 import com.fiap.order.core.dto.CreateOrderDTO;
 import com.fiap.order.core.usecase.CreateOrderUseCase;

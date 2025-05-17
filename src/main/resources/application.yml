@@ -10,7 +10,9 @@ rest-client:
   product:
     url: http://localhost:8081/api/v1/product
   customer:
-    url: http://localhost:8082/customer
+    url: http://localhost:8082/api/v1/customer
+  stock:
+    url: http://localhost:8083/api/v1/stock
 
 kafka:
   topic:
