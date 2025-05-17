@@ -22,9 +22,11 @@ public class KafkaConfig {
     @Value("${kafka.topic.order-receiver.name}")
     private String orderReceiverTopic;
 
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, CreateOrderDTO>>
-    kafkaListenerContainerFactory() {
+    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, CreateOrderDTO>> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, CreateOrderDTO> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);
@@ -40,7 +42,7 @@ public class KafkaConfig {
     @Bean
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.KEY_DEFAULT_TYPE, String.class);
