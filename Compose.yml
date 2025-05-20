@@ -1,0 +1,33 @@
+services:
+  ms-order-app:
+    image: evandroig/ms-order:latest
+    networks:
+      - "ms-order-network"
+    ports:
+      - "8080:8080"
+    links:
+      - "mongodb:servicedb"
+    depends_on:
+      - "mongodb"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/order
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: http://kafkaBroker:9092
+  mongodb:
+    networks:
+      - "ms-order-network"
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/db:/data/db
+    image: mongo:latest
+  kafkaBroker:
+    image: apache/kafka:latest
+    networks:
+      - "ms-order-network"
+    ports:
+      - "9092:9092"
+networks:
+  ms-order-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"

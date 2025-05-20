@@ -1,0 +1,27 @@
+server:
+  port: 8085
+spring:
+  kafka:
+    bootstrap-servers: http://localhost:9092
+  application:
+    name: order
+  data:
+    mongodb:
+      initialization-mode: always
+      uri: mongodb://localhost:27017/order
+
+rest-client:
+  product:
+    url: http://localhost:8081/api/v1/products
+  customer:
+    url: http://localhost:8082/api/v1/clients
+  stock:
+    url: http://localhost:8083/api/v1/stocks
+  payment:
+    url: http://localhost:8084/api/v1/payments
+
+kafka:
+  topic:
+    order-receiver:
+      name: orderReceiver
+      partition: 0
